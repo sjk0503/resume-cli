@@ -62,7 +62,7 @@ async function main() {
   let forceNewWindow = !ghosttyHasWindow();
 
   let opened = 0;
-  for (const { entry, cwd, cmd } of plan) {
+  for (const { entry, cmd } of plan) {
     const tag = entry.kind === 'vibe' ? `vibe:${entry.vibeProjectName}` : 'claude';
     try {
       // For vibe we pass the recorded cwd anyway as a harmless starting dir; `vibe

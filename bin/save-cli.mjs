@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // save-cli — snapshot all currently-running interactive claude/vibe sessions.
 import { detectSessions } from '../src/sessions.mjs';
-import { writeSnapshot, SNAPSHOT_PATH } from '../src/snapshot.mjs';
+import { writeSnapshot } from '../src/snapshot.mjs';
 
 function main() {
   const sessions = detectSessions();
