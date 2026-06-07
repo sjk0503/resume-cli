@@ -54,21 +54,27 @@ export function ghosttyHasWindow() {
 }
 
 // Open one Ghostty surface (tab if a window exists, else a new window) at `cwd` and run
-// `command`. We append `; exec $SHELL` so the tab stays alive (drops to an interactive
-// shell) after the command exits or the session ends.
+// `command`.
+//
+// WHY `initial input` AND NOT `command`: the surface config's `command` property is
+// "execute INSTEAD OF the configured shell" — Ghostty exec's it directly, with NO shell
+// interpretation. So shell syntax ($(...), >, &&, ;, exec $SHELL) is not parsed and the
+// launch fails ("Ghostty failed to launch the requested command"). Instead we leave the
+// normal login shell to start and set `initial input` — text fed to that shell's pty
+// after launch (like a paste, scoped to this surface, NOT global keystrokes). A trailing
+// return runs it. The interactive shell stays alive afterward, so no `exec $SHELL` hack.
 //
 // `forceNewWindow` lets the caller open the very first session as a window (so a clean
 // "no Ghostty windows" start still works) and subsequent ones as tabs.
 export function openTabInGhostty({ cwd, command, forceNewWindow = false }) {
-  const fullCommand = `${command}; exec $SHELL`;
   const useTab = !forceNewWindow && ghosttyHasWindow();
 
   const lines = [
     'tell application "Ghostty"',
     '  activate',
     '  set cfg to new surface configuration',
-    `  set command of cfg to ${asString(fullCommand)}`,
     `  set initial working directory of cfg to ${asString(cwd)}`,
+    `  set initial input of cfg to ${asString(command)} & return`,
   ];
 
   if (useTab) {

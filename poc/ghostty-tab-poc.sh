@@ -11,15 +11,18 @@ MARKER="/tmp/resume-cli-poc.out"
 rm -f "$MARKER"
 
 CWD="$HOME/dev/resume-cli"
-# The command the new tab should run, then keep the shell alive:
-INNER_CMD="echo POC_OK \$(pwd) \$(date +%s) > $MARKER && echo done; exec \$SHELL"
+# The command the new tab should run. We feed it via `initial input` (sent to the normal
+# shell's pty after launch), NOT via `command` (which REPLACES the shell and is exec'd
+# directly with no shell parsing — shell syntax like $(), >, && would break the launch).
+# The normal interactive shell stays alive after the command runs.
+INNER_CMD="echo POC_OK \$(pwd) \$(date +%s) > $MARKER && echo done"
 
 osascript <<APPLESCRIPT
 tell application "Ghostty"
   activate
   set cfg to new surface configuration
-  set command of cfg to "$INNER_CMD"
   set initial working directory of cfg to "$CWD"
+  set initial input of cfg to "$INNER_CMD" & return
   if (count of windows) > 0 then
     new tab in front window with configuration cfg
   else
