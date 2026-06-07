@@ -13,8 +13,8 @@ export function writeSnapshot(sessions) {
     savedAt: new Date().toISOString(),
     sessions,
   };
-  // Strip runtime-only fields (pid changes across reboots; tty is informational).
-  payload.sessions = sessions.map(({ pid, ...keep }) => keep);
+  // Strip runtime-only fields (pid changes across reboots; tty is meaningless after reboot).
+  payload.sessions = sessions.map(({ pid, tty, ...keep }) => keep);
   writeFileSync(SNAPSHOT_PATH, JSON.stringify(payload, null, 2) + '\n', 'utf8');
   return SNAPSHOT_PATH;
 }
