@@ -1,29 +1,30 @@
 #!/bin/bash
-# PoC: open a NEW TAB in Ghostty and run a command inside it.
-# Success marker: writes POC_OK + timestamp to /tmp/resume-cli-poc.out from INSIDE the new tab.
+# PoC: open a NEW TAB in Ghostty at a given cwd and run a command inside it — using
+# Ghostty's AppleScript dictionary (Ghostty 1.3+). NO keystroke simulation, so nothing
+# can leak into another frontmost app.
+#
+# Success marker: writes POC_OK + cwd + timestamp to /tmp/resume-cli-poc.out from INSIDE
+# the new tab. Proves the command ran in the correct working directory.
 set -euo pipefail
 
 MARKER="/tmp/resume-cli-poc.out"
 rm -f "$MARKER"
 
-# The command we want the new tab to actually run:
-INNER_CMD="cd ~/dev/resume-cli && echo POC_OK \$(date +%s) > $MARKER && echo done"
+CWD="$HOME/dev/resume-cli"
+# The command the new tab should run, then keep the shell alive:
+INNER_CMD="echo POC_OK \$(pwd) \$(date +%s) > $MARKER && echo done; exec \$SHELL"
 
 osascript <<APPLESCRIPT
-tell application "Ghostty" to activate
-delay 0.4
-tell application "System Events"
-  tell process "Ghostty"
-    -- open a new tab
-    keystroke "t" using {command down}
-  end tell
-end tell
-delay 0.8
-tell application "System Events"
-  -- type the command into the freshly focused tab, then Enter
-  keystroke "$INNER_CMD"
-  delay 0.2
-  key code 36
+tell application "Ghostty"
+  activate
+  set cfg to new surface configuration
+  set command of cfg to "$INNER_CMD"
+  set initial working directory of cfg to "$CWD"
+  if (count of windows) > 0 then
+    new tab in front window with configuration cfg
+  else
+    new window with configuration cfg
+  end if
 end tell
 APPLESCRIPT
 
@@ -36,5 +37,5 @@ for i in $(seq 1 20); do
   fi
   sleep 0.25
 done
-echo "MARKER NOT FOUND — PoC FAILED (tab/keystroke likely blocked)."
+echo "MARKER NOT FOUND — PoC FAILED (Ghostty AppleScript likely blocked)."
 exit 1
