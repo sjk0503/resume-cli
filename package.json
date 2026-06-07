@@ -1,0 +1,21 @@
+{
+  "name": "resume-cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Snapshot all running Ghostty claude/vibe sessions and restore them into new tabs after a reboot. macOS + Ghostty only.",
+  "type": "module",
+  "bin": {
+    "save-cli": "bin/save-cli.mjs",
+    "restore-cli": "bin/restore-cli.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "os": [
+    "darwin"
+  ],
+  "scripts": {
+    "poc": "bash poc/ghostty-tab-poc.sh"
+  },
+  "license": "UNLICENSED"
+}
